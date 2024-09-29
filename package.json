@@ -1,0 +1,21 @@
+{
+  "name": "matza-discord-bot",
+  "version": "0.1.0",
+  "description": "A bot to manage a learning environment",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "@replit/object-storage": "^1.0.0",
+    "@types/node": "^18.0.6",
+    "better-sqlite3": "^11.3.0",
+    "discord.js": "^14.16.2",
+    "express": "^4.21.0",
+    "quick.db": "^9.1.7",
+    "write-file-atomic": "^5.0.1"
+  },
+  "keywords": [],
+  "author": "Julio Holon",
+  "license": "MIT"
+}
