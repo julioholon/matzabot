@@ -35,6 +35,9 @@ module.exports = {
     const email = interaction.options.getString("email");
     // Get the facilitators from the database
     const facilitadores = await db.get("facilitadores");
+
+    await interaction.deferReply({ephemeral: true});
+    
     // Check if the email exists
     if (!facilitadores || !facilitadores.find((f) => f.email)) {
       return interaction.reply({
@@ -46,7 +49,7 @@ module.exports = {
     await db.pull("facilitadores", (f) => f.email === email);
     console.log(`ALERTA: Facilitador ${email} removido com sucesso.`);
     // Send a message to the user
-    return interaction.reply({
+    return interaction.editReply({
       content: `O facilitador '${email}' foi removido com sucesso.`,
       ephemeral: true,
     });

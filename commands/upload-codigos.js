@@ -22,6 +22,9 @@ module.exports = {
   async execute(interaction) {
     // Get the file attachment
     const attachment = interaction.options.getAttachment("csv");
+
+    await interaction.deferReply({ephemeral: true});
+    
     const file = await fetch(attachment.attachment);
     const buffer = await file.arrayBuffer();
     const text = new TextDecoder().decode(buffer);
@@ -33,6 +36,6 @@ module.exports = {
     console.log(
       `ALERTA: Códigos atualizados, agora com ${codes.length} códigos.`,
     );
-    interaction.reply({ content: "Códigos atualizados!", ephemeral: true });
+    interaction.editReply({ content: "Códigos atualizados!", ephemeral: true });
   },
 };

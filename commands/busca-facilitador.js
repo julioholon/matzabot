@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const { QuickDB } = require("quick.db");
 const db = new QuickDB();
+const Table = require("easy-table");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -27,6 +28,8 @@ module.exports = {
     // Get the search query
     busca = interaction.options.getString("busca") || "";
 
+    await interaction.deferReply({ ephemeral: true });
+
     let filteredFacilitadores = [];
     await Promise.all(
       await facilitadores.map(async (facilitador) => {
@@ -36,7 +39,7 @@ module.exports = {
             .toLowerCase()
             .includes(busca.toLowerCase()) ||
           facilitador.email.toLowerCase().includes(busca.toLowerCase()) ||
-          handle.toLowerCase().includes(busca.toLowerCase())
+          facilitador.handle.toLowerCase().includes(busca.toLowerCase())
         ) {
           return {
             handle: facilitador.handle,
@@ -48,36 +51,57 @@ module.exports = {
         }
       }),
     ).then(async (filteredFacilitadores) => {
-      let names = "";
-      let instituicoes = "";
-      let ids = "";
-      let results = 0;
-      filteredFacilitadores.forEach((fac) => {
-        if (!fac) return;
-        names += `${fac.nomeCompleto}\n`;
-        instituicoes += `${fac.instituicao}\n`;
-        ids += fac.userid ? `<@${fac.userid}>\n` :`@${fac.handle}\n`;
-        results += 1;
+      let found = 0;
+      let pages = [];
+      const pageSize = 30;
+
+      // sort facilitators by name
+      filteredFacilitadores.sort((a, b) => {
+        const nameA = a.nomeCompleto.toLowerCase();
+        const nameB = b.nomeCompleto.toLowerCase();
+        if (nameA < nameB) {
+          return -1;
+        }
+        if (nameA > nameB) {
+          return 1;
+        }
+        return 0;
       });
 
-      // Return an Embed with the found data
-      const embed = new EmbedBuilder()
-        .setTitle("Resultados da busca")
-        .setDescription(`Encontrados ${results} facilitadores.`)
-        .setColor("Random")
-        .setFooter({
-          text: "Se você não sabe o PIN do Facilitador, pergunte para ele, clicando no seu nome.",
-        });
-      // Add the facilitators to the embed
-
-      if (results) {
-        embed.addFields(
-          { name: "Nome", value: names, inline: true },
-          { name: "ID", value: ids, inline: true },
-          { name: "Instituição", value: instituicoes, inline: true },
-        );
+      for (i = 0; i < filteredFacilitadores.length; i += pageSize) {
+        let resp = "";
+        for (j = i; j < i + pageSize && j < filteredFacilitadores.length; j++) {
+          if (filteredFacilitadores[j]) {
+            fac = filteredFacilitadores[j];
+            resp += `${fac.nomeCompleto} ( ${fac.instituicao} ) <@${fac.userid}>\n`;
+            found++;
+          }
+        }
+        pages.push(resp);
       }
-      interaction.reply({ embeds: [embed], ephemeral: true });
+      // Return the results:
+
+      let response = "**Resultados da busca:**\n";
+      if (found === 0) {
+        response += "\nNenhum facilitador encontrado.";
+
+        interaction.editReply({
+          content: response,
+          ephemeral: true,
+        });
+      } else {
+        response += "\n\n**Facilitadores encontrados:**\n";
+        interaction.editReply({
+          content: response,
+          ephemeral: true,
+        });
+        pages.forEach((page) => {
+          interaction.followUp({
+            content: page.toString(),
+            ephemeral: true,
+          });
+        });
+      }
     });
   },
 };

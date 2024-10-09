@@ -11,6 +11,7 @@
     "@types/node": "^18.0.6",
     "better-sqlite3": "^11.3.0",
     "discord.js": "^14.16.2",
+    "easy-table": "^1.2.0",
     "express": "^4.21.0",
     "quick.db": "^9.1.7",
     "write-file-atomic": "^5.0.1"

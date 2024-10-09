@@ -23,28 +23,35 @@ module.exports = {
       });
     }
 
+    await interaction.deferReply({ephemeral: true});
+    
     let filteredFacilitadores = [];
     await Promise.all(
       await facilitadores.map(async (facilitador) => {
         // Get discord handle for the facilitador
-        user = await interaction.guild.members.fetch(facilitador.userid);
-        handle = user.user.username;
-        // Check if the facilitador's name or email contains the search query
-        return {
-          userid: facilitador.userid,
-          handle: facilitador.handle,
-          nomeCompleto: facilitador.nomeCompleto,
-          email: facilitador.email,
-          instituicao: facilitador.instituicao,
-          pin: facilitador.pin,
-          codigo: facilitador.codigo,
-        };
+        try {
+          user = await interaction.guild.members.fetch(facilitador.userid);
+          handle = user.user.username;
+          // Check if the facilitador's name or email contains the search query
+          return {
+            userid: facilitador.userid,
+            handle: facilitador.handle,
+            nomeCompleto: facilitador.nomeCompleto,
+            email: facilitador.email,
+            instituicao: facilitador.instituicao,
+            pin: facilitador.pin,
+            codigo: facilitador.codigo,
+          };
+        } catch (error) {
+          console.error(error);
+          return false;
+        }
       }),
     ).then(async (filteredFacilitadores) => {
       let csv = "ID,Username,Nome,Email,Instituição,PIN,Código\n";
 
       filteredFacilitadores.forEach((fac) => {
-        csv = csv.concat(
+        if (fac) csv = csv.concat(
           `${fac.userid},${fac.handle},${fac.nomeCompleto},${fac.email},` +
             `${fac.instituicao},${fac.pin},${fac.codigo}\n`,
         );
@@ -58,7 +65,7 @@ module.exports = {
       });
 
       // Send the file attachment to the user
-      await interaction.reply({
+      await interaction.editReply({
         content: "Segue o arquivo CSV com todos os facilitadores.",
         files: [attachment],
         ephemeral: true,

@@ -24,6 +24,8 @@ module.exports = {
     const fileString = new TextDecoder().decode(fileContent);
     const lines = fileString.split("\n").slice(1);
 
+    await interaction.deferReply({ephemeral: true});
+    
     facilitadores = lines.map((line) => {
       const [userid, handle, nomeCompleto, email, instituicao, pin, codigo] =
         line.split(",");
@@ -57,7 +59,7 @@ module.exports = {
     );
 
     // Send the file attachment to the user
-    await interaction.reply({
+    await interaction.editReply({
       content: `Importação de ${facilitadores.length} facilitadores concluida com sucesso.`,
       ephemeral: true,
     });

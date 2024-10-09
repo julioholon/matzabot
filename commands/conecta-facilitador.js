@@ -33,7 +33,7 @@ module.exports = {
         ephemeral: true,
       });
     }
-    
+
     // Get all facilitators from the database
     const facilitadores = await db.get("facilitadores");
     // Check if there are any facilitators
@@ -60,10 +60,12 @@ module.exports = {
       });
     }
 
+    await interaction.deferReply({ ephemeral: true });
+
     // Adds the EstudantesAtivos role to the current user
     const role = interaction.guild.roles.cache.find(
       (role) => role.name === "EstudantesAtivos",
-    )
+    );
 
     // If role not found, create it
     if (!role) {
@@ -77,7 +79,7 @@ module.exports = {
         console.error(`ERRO: Ao criar role: ${error}`);
       }
     }
-    
+
     // Add the role to the user
     if (role) {
       await interaction.member.roles.add(role);
@@ -96,12 +98,11 @@ module.exports = {
     facilitador.send(`O aluno ${interaction.user} se conectou com você!`);
 
     // Respond to the user
-    interaction.reply({
-      content: `Você se conectou com o Facilitador ${facilitador}! Seu código de acesso é: ${facilitadorEncontrado.codigo}`,
+    interaction.editReply({
+      content: `Você se conectou com o Facilitador ${facilitador}!\n
+      Seu código de acesso é: ${facilitadorEncontrado.codigo}\n
+      Use o código para se cadastrar no Google Arcade por esse link: https://rsvp.withgoogle.com/events/arcade-facilitador/matriculas`,
       ephemeral: true,
     });
-    interaction.followUp({
-      content: 'Use o código para se cadastrar no Google Arcade por esse link: https://rsvp.withgoogle.com/events/arcade-facilitador/home',
-      ephemeral: true});
   },
 };

@@ -13,6 +13,8 @@ const { userInfo } = require("node:os");
 const path = require("node:path");
 const { QuickDB } = require("quick.db");
 const db = new QuickDB();
+const FSClient = require("@replit/object-storage").Client;
+const fsclient = new FSClient();
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
@@ -45,7 +47,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.customId === "RegistroFacilitador") {
     const nomeCompleto = interaction.fields.getTextInputValue("nomeCompleto");
     const email = interaction.fields.getTextInputValue("email");
-    const instituicao = interaction.fields.getTextInputValue("instituicao");
+    const instituicao = interaction.fields
+      .getTextInputValue("instituicao")
+      .replaceAll(",", "-")
     const pin = interaction.fields.getTextInputValue("pin");
     const handle = interaction.user.username;
     const userid = interaction.user.id;
@@ -89,6 +93,13 @@ client.on(Events.InteractionCreate, async (interaction) => {
       codigo,
     });
 
+    const role = interaction.guild.roles.cache.find(
+      (role) => role.name === "FacilitadoresAtivos",
+    );
+    if (role) {
+      await interaction.member.roles.add(role);
+    }
+
     console.log(
       `ALERTA: Novo usuário ${email} cadastrado com pin: ${pin} e código: ${codigo}.`,
     );
@@ -121,8 +132,22 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 })();
 
-client.on("ready", () => {
+client.on("ready", async () => {
   console.log(`Logged in as ${client.user.tag}!`);
+  const { ok, value, error } = await fsclient.downloadAsText("backup.json");
+  if (!ok) {
+    console.error(error);
+    await interaction.editReply({
+      content: "Ocorreu um erro ao tentar restaurar o backup.",
+      ephemeral: true,
+    });
+    return;
+  }
+  const db_array = JSON.parse(value);
+  for (const n in db_array) {
+    db.set(db_array[n].id, db_array[n].value);
+  }
+  console.log("Restored backup succesfully.");
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
