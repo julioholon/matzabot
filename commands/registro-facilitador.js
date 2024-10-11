@@ -38,7 +38,7 @@ module.exports = {
 
     const emailInput = new TextInputBuilder()
       .setCustomId("email")
-      .setLabel("Digite seu email")
+      .setLabel("Digite um email válido")
       .setStyle(TextInputStyle.Short)
       .setRequired(true);
     const emailRow = new ActionRowBuilder().addComponents(emailInput);

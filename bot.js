@@ -16,6 +16,14 @@ const db = new QuickDB();
 const FSClient = require("@replit/object-storage").Client;
 const fsclient = new FSClient();
 
+const validateEmail = (email) => {
+  return String(email)
+    .toLowerCase()
+    .match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
+};
+
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
 });
@@ -46,7 +54,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isModalSubmit()) return;
   if (interaction.customId === "RegistroFacilitador") {
     const nomeCompleto = interaction.fields.getTextInputValue("nomeCompleto");
-    const email = interaction.fields.getTextInputValue("email");
+    const email = interaction.fields.getTextInputValue("email").toLowerCase()
     const instituicao = interaction.fields
       .getTextInputValue("instituicao")
       .replaceAll(",", "-")
@@ -55,6 +63,15 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const userid = interaction.user.id;
     let codigos = (await db.get("codigos")) || [];
     let facilitadores = (await db.get("facilitadores")) || [];
+
+    // Varifica se o e-mail é valido
+    if (!validateEmail(email)) {
+      interaction.reply({
+        content: "E-mail inválido.",
+        ephemeral: true,
+      });
+      return;
+    }
 
     // Verifica se o email já foi cadastrado
 
